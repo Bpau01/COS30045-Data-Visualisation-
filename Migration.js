@@ -5,7 +5,7 @@ function drawWorldMap(year) {
   //Colour range for the map value
   var color = d3
     .scaleQuantize()
-    .range(["#feedde", "#fdbe85", "#fd8d3c", "#e6550d", "#a63603"]);
+    .range(["#feedde", "#fdbe85", "#fd8d3c", "#e6550d", "#a63603", "#808080"]);
 
   var nameMap = {
     "Western Sahara": "W. Sahara",
@@ -80,9 +80,9 @@ function drawWorldMap(year) {
           .attr("d", path)
           .attr("fill", function (world) {
             var value = world.properties.value;
-            if (value === undefined || value === null) {
-              console.log(world.properties.name);
-            }
+            // if (value === undefined || value === null) {
+            //   console.log(world.properties.name);
+            // }
             if (value >= 3000) {
               return color.range()[4];
             } else if (value >= 1000 && value < 3000) {
@@ -93,10 +93,15 @@ function drawWorldMap(year) {
               return color.range()[1];
             } else if (value < 200) {
               return color.range()[0];
+            } else {
+              d3.select(this).attr("fill", color.range()[5]);
             }
           })
-          .on("mouseover", function () {
+          .on("mouseover", function (world) {
             d3.select(this).attr("fill", "blue");
+            d3.select("#chart1ValueText").text(
+              world.properties.name + ", " + world.properties.value
+            );
           })
           .on("mouseout", function () {
             var value = d3.select(this).data()[0].properties.value;
@@ -110,6 +115,8 @@ function drawWorldMap(year) {
               d3.select(this).attr("fill", color.range()[1]);
             } else if (value < 200) {
               d3.select(this).attr("fill", color.range()[0]);
+            } else {
+              d3.select(this).attr("fill", color.range()[5]);
             }
           });
       });
@@ -117,89 +124,246 @@ function drawWorldMap(year) {
   );
 }
 
-// function pieChart() {
-//   // Define the initial data for the donut chart
-//   const data = [100, 50, 30];
+function pieChart() {
+  // // Define the initial data for the donut chart
+  // const data = [100, 50, 30];
 
-//   // Define the dimensions of the SVG element and the radius of the donut chart
-//   const width = 400;
-//   const height = 400;
-//   const radius = Math.min(width, height) / 2 - 10;
+  // // Define the dimensions of the SVG element and the radius of the donut chart
+  // const width = 400;
+  // const height = 400;
+  // const radius = Math.min(width, height) / 2 - 10;
 
-//   // Define the color scale for the chart segments
-//   const color = d3
-//     .scaleOrdinal()
-//     .domain(data.map((d, i) => i))
-//     .range(["#4daf4a", "#377eb8", "#ff7f00"]);
+  // // Define the color scale for the chart segments
+  // const color = d3
+  //   .scaleOrdinal()
+  //   .domain(data.map((d, i) => i))
+  //   .range(["#4daf4a", "#377eb8", "#ff7f00"]);
 
-//   // Define the arc generator for the chart segments
-//   const arc = d3
-//     .arc()
-//     .innerRadius(radius * 0.5)
-//     .outerRadius(radius * 0.8);
+  // // Define the arc generator for the chart segments
+  // const arc = d3
+  //   .arc()
+  //   .innerRadius(radius * 0.5)
+  //   .outerRadius(radius * 0.8);
 
-//   // Define the arc generator for the hover segments
-//   const hoverArc = d3
-//     .arc()
-//     .innerRadius(radius * 0.7)
-//     .outerRadius(radius * 0.9);
+  // // Define the arc generator for the hover segments
+  // const hoverArc = d3
+  //   .arc()
+  //   .innerRadius(radius * 0.7)
+  //   .outerRadius(radius * 0.9);
 
-//   // Define the pie generator for the chart data
-//   const pie = d3
-//     .pie()
-//     .sort(null)
-//     .value((d) => d);
+  // // Define the pie generator for the chart data
+  // const pie = d3
+  //   .pie()
+  //   .sort(null)
+  //   .value((d) => d);
 
-//   // Create the SVG element and add a group for the chart
-//   const svg = d3
-//     .select("#chart2")
-//     .append("svg")
-//     .attr("width", width)
-//     .attr("height", height)
-//     .append("g")
-//     .attr("transform", `translate(${width / 2}, ${height / 2})`);
+  // // Create the SVG element and add a group for the chart
+  // const svg = d3
+  //   .select("#chart2")
+  //   .append("svg")
+  //   .attr("width", width)
+  //   .attr("height", height)
+  //   .append("g")
+  //   .attr("transform", `translate(${width / 2}, ${height / 2})`);
 
-//   // Add the segments to the chart
-//   const segments = svg
-//     .selectAll("path")
-//     .data(pie(data))
-//     .enter()
-//     .append("path")
-//     .attr("d", arc)
-//     .attr("fill", (d, i) => color(i))
-//     .on("mouseover", function (d) {
-//       // Get the data for the hover segments
-//       const hoverData = [70, 20, 10];
+  // // Add the segments to the chart
+  // const segments = svg
+  //   .selectAll("path")
+  //   .data(pie(data))
+  //   .enter()
+  //   .append("path")
+  //   .attr("d", arc)
+  //   .attr("fill", (d, i) => color(i))
+  //   .on("mouseover", function (d) {
+  //     // Get the data for the hover segments
+  //     const hoverData = [70, 20, 10];
 
-//       // Remove the old hover segments
-//       svg.selectAll(".hover-segment").remove();
+  //     // Remove the old hover segments
+  //     svg.selectAll(".hover-segment").remove();
 
-//       // Add the new hover segments
-//       svg
-//         .selectAll(".hover-segment")
-//         .data(pie(hoverData))
-//         .enter()
-//         .append("path")
-//         .attr("class", "hover-segment")
-//         .attr("d", hoverArc)
-//         .attr("fill", (d, i) => color(i))
-//         .attr("stroke", "white")
-//         .attr("stroke-width", 2)
-//         .style("opacity", 0.7)
-//         .each(function (d) {
-//           // Store the old data for the hover segment
-//           this._current = d;
-//         });
-//     })
-//     .on("mouseout", function (d) {
-//       // Remove the hover segments
-//       svg.selectAll(".hover-segment").remove();
-//     });
-// }
+  //     // Add the new hover segments
+  //     svg
+  //       .selectAll(".hover-segment")
+  //       .data(pie(hoverData))
+  //       .enter()
+  //       .append("path")
+  //       .attr("class", "hover-segment")
+  //       .attr("d", hoverArc)
+  //       .attr("fill", (d, i) => color(i))
+  //       .attr("stroke", "white")
+  //       .attr("stroke-width", 2)
+  //       .style("opacity", 0.7)
+  //       .each(function (d) {
+  //         // Store the old data for the hover segment
+  //         this._current = d;
+  //       });
+  //   })
+  //   .on("mouseout", function (d) {
+  //     // Remove the hover segments
+  //     svg.selectAll(".hover-segment").remove();
+  //   });
+
+  //----------------------------------------------------------------------------------------------------------------
+
+  var w = 500;
+  var h = 500;
+
+  d3.csv(
+    "data2.csv",
+    function (d) {
+      return {
+        group: d["Visa groupings(d)"],
+        value: parseFloat(d.Total.replace(/,/g, "")),
+      };
+    },
+    function (error, data) {
+      if (error) throw error;
+      const dataByGroup = d3.group(data, (d) => d.group);
+      const dataset = Array.from(dataByGroup, ([group, value]) => {
+        return { group, value: d3.sum(value, (d) => d.value) };
+      });
+
+      //Inner and Outer Radius for Drawing the Pir Chart
+      //Can Change Inner Radius to Produce a Donut Chart
+      var outerRadius = w / 2;
+      var innerRadius = h / 5;
+
+      var arc = d3.arc().outerRadius(outerRadius).innerRadius(innerRadius);
+      const hoverArc = d3
+        .arc()
+        .innerRadius(innerRadius + 50)
+        .outerRadius(outerRadius + 50);
+
+      var pie = d3
+        .pie()
+        .value(function (d) {
+          return d.value;
+        })
+        .sort(null)
+        .value(function (d) {
+          return d.value;
+        })
+        .sort(function (a, b) {
+          //console.log(a);
+          return d3.ascending(a.group, b.group);
+        });
+
+      var svg = d3
+        .select("#chart2")
+        .append("svg")
+        .attr("width", 600)
+        .attr("height", 600);
+
+      var arcs = svg
+        .selectAll("g.arc")
+        .data(pie(dataset))
+        .enter()
+        .append("g")
+        .attr("class", "arc")
+        .attr(
+          "transform",
+          "translate(" + (outerRadius + 20) + "," + (outerRadius + 20) + ")"
+        );
+
+      var hoverArcs = d3
+        .selectAll("g.arc")
+        .data(pie(dataset))
+        .enter()
+        .append("g")
+        .attr("class", "arc")
+        .attr(
+          "transform",
+          "translate(" + (outerRadius + 20) + "," + (outerRadius + 20) + ")"
+        );
+
+      //Color from d3 library
+      var color = d3.scaleOrdinal(d3.schemeCategory10);
+
+      //Drawing of Pie Chart
+      arcs
+        .append("path")
+        .attr("fill", function (d, i) {
+          return color(i);
+        })
+        .attr("d", function (d, i) {
+          return arc(d, i);
+        })
+        .on("mouseover", function (d) {
+          //Push the segmants outwards
+          d3.select(this)
+            .transition()
+            .duration(200)
+            .attr(
+              "d",
+              d3
+                .arc()
+                .innerRadius(innerRadius + 15)
+                .outerRadius(outerRadius + 15)
+            );
+
+          currentGroup = d.data.group;
+          console.log(currentGroup);
+
+          d3.selectAll(".hover-segment path")
+
+            .filter(function (hover) {
+              return hover.data.group === currentGroup;
+            })
+            .transition()
+            .duration(200)
+            .attr("opacity", "1");
+        })
+        .on("mouseout", function (d) {
+          console.log("out");
+          d3.select(this).transition().duration(200).attr("d", arc);
+          d3.selectAll(".hover-segment path")
+          .attr("opacity", 0);
+        });
+
+      //Text Label
+      arcs
+        .append("text")
+        .text(function (d) {
+          var percent = (
+            (100 * d.data.value) /
+            d3.sum(dataset, (d) => d.value)
+          ).toFixed(1);
+          return d.data.group + ": " + percent + "%";
+        })
+        .attr("transform", function (d) {
+          return "translate(" + arc.centroid(d) + ")";
+        })
+        .raise();
+
+      //Hover Chart
+      svg
+        .selectAll(".hover-segment")
+        .data(pie(data))
+        .enter()
+        .append("g")
+        .attr("class", "hover-segment")
+        .attr("d", hoverArc)
+        .attr(
+          "transform",
+          "translate(" + (outerRadius + 20) + "," + (outerRadius + 20) + ")"
+        )
+        .append("path")
+        .attr("fill", function (d, i) {
+          return color(i);
+        })
+        .attr("d", function (d, i) {
+          return hoverArc(d, i);
+        })
+        .attr("opacity", "0");
+
+      arcs.raise();
+    }
+  );
+}
 
 function main() {
   drawWorldMap("2004-05");
-  //pieChart();
+  pieChart();
   var slider = d3.select("#slider");
   // Get value based on slider
   slider.on("input", function () {
@@ -227,6 +391,7 @@ function main() {
     var selectedYear = years[this.value - 1];
     console.log(selectedYear);
     drawWorldMap(selectedYear);
+    d3.select("#chart1YearText").text("Year: " + selectedYear);
   });
 }
 
