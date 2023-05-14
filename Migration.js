@@ -152,7 +152,7 @@ function pieChart() {
       const hoverArc = d3
         .arc()
         .innerRadius(innerRadius + 50)
-        .outerRadius(outerRadius + 50);
+        .outerRadius(outerRadius + 100);
 
       var pie = d3
         .pie()
@@ -171,8 +171,8 @@ function pieChart() {
       var svg = d3
         .select("#chart2")
         .append("svg")
-        .attr("width", 600)
-        .attr("height", 600);
+        .attr("width", 900)
+        .attr("height", 900);
 
       var arcs = svg
         .selectAll("g.arc")
@@ -182,18 +182,7 @@ function pieChart() {
         .attr("class", "arc")
         .attr(
           "transform",
-          "translate(" + (outerRadius + 20) + "," + (outerRadius + 20) + ")"
-        );
-
-      var hoverArcs = d3
-        .selectAll("g.arc")
-        .data(pie(dataset))
-        .enter()
-        .append("g")
-        .attr("class", "arc")
-        .attr(
-          "transform",
-          "translate(" + (outerRadius + 20) + "," + (outerRadius + 20) + ")"
+          "translate(" + (outerRadius + 150) + "," + (outerRadius + 100) + ")"
         );
 
       //Color from d3 library
@@ -222,8 +211,6 @@ function pieChart() {
             );
 
           currentGroup = d.data.group;
-          console.log(currentGroup);
-
           d3.selectAll(".hover-segment path")
 
             .filter(function (hover) {
@@ -234,9 +221,8 @@ function pieChart() {
             .attr("opacity", "1");
         })
         .on("mouseout", function (d) {
-          console.log("out");
           d3.select(this).transition().duration(200).attr("d", arc);
-          d3.selectAll(".hover-segment path").attr("opacity", 0);
+          d3.selectAll(".hover-segment path").attr("opacity", "0");
         });
 
       //Text Label
@@ -261,19 +247,40 @@ function pieChart() {
         .enter()
         .append("g")
         .attr("class", "hover-segment")
-        .attr("d", hoverArc)
         .attr(
           "transform",
-          "translate(" + (outerRadius + 20) + "," + (outerRadius + 20) + ")"
+          "translate(" + (outerRadius + 150) + "," + (outerRadius + 100) + ")"
         )
         .append("path")
         .attr("fill", function (d, i) {
+          var greenScale = d3
+            .scaleSequential()
+            .domain([11, 15])
+            .interpolator(d3.interpolateGreens);
+          var blueScale = d3
+            .scaleSequential()
+            .domain([0, 4])
+            .interpolator(d3.interpolateBlues);
+          var orangeScale = d3
+            .scaleSequential()
+            .domain([6, 15])
+            .interpolator(d3.interpolateOranges);
+          //console.log(d.data);
+          if (d.data.group == "Others") {
+            return greenScale(i);
+          } else if (d.data.group == "Temporary visas") {
+            return orangeScale(i);
+          } else if (d.data.group == "Permanent visas") {
+            console.log(i);
+            return blueScale(i / 3);
+          }
           return color(i);
         })
         .attr("d", function (d, i) {
           return hoverArc(d, i);
         })
         .attr("opacity", "0");
+      //.attr("stroke", "black");
 
       arcs.raise();
     }
@@ -363,37 +370,37 @@ function lineChart() {
 
 function main() {
   lineChart();
-  // drawWorldMap("2004-05");
-  // pieChart();
-  // var slider = d3.select("#slider");
-  // // Get value based on slider
-  // slider.on("input", function () {
-  //   //CSV columns
-  //   var years = [
-  //     "2004-05",
-  //     "2005-06",
-  //     "2006-07",
-  //     "2007-08",
-  //     "2008-09",
-  //     "2009-10",
-  //     "2010-11",
-  //     "2011-12",
-  //     "2012-13",
-  //     "2013-14",
-  //     "2014-15",
-  //     "2015-16",
-  //     "2016-17",
-  //     "2017-18",
-  //     "2018-19",
-  //     "2019-20",
-  //     "2020-21",
-  //     "2021-22(e)",
-  //   ];
-  //   var selectedYear = years[this.value - 1];
-  //   console.log(selectedYear);
-  //   drawWorldMap(selectedYear);
-  //   d3.select("#chart1YearText").text("Year: " + selectedYear);
-  // });
+  drawWorldMap("2004-05");
+  pieChart();
+  var slider = d3.select("#slider");
+  // Get value based on slider
+  slider.on("input", function () {
+    //CSV columns
+    var years = [
+      "2004-05",
+      "2005-06",
+      "2006-07",
+      "2007-08",
+      "2008-09",
+      "2009-10",
+      "2010-11",
+      "2011-12",
+      "2012-13",
+      "2013-14",
+      "2014-15",
+      "2015-16",
+      "2016-17",
+      "2017-18",
+      "2018-19",
+      "2019-20",
+      "2020-21",
+      "2021-22(e)",
+    ];
+    var selectedYear = years[this.value - 1];
+    console.log(selectedYear);
+    drawWorldMap(selectedYear);
+    d3.select("#chart1YearText").text("Year: " + selectedYear);
+  });
 }
 
 window.onload = main;
