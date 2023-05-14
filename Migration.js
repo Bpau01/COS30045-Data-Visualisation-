@@ -125,86 +125,6 @@ function drawWorldMap(year) {
 }
 
 function pieChart() {
-  // // Define the initial data for the donut chart
-  // const data = [100, 50, 30];
-
-  // // Define the dimensions of the SVG element and the radius of the donut chart
-  // const width = 400;
-  // const height = 400;
-  // const radius = Math.min(width, height) / 2 - 10;
-
-  // // Define the color scale for the chart segments
-  // const color = d3
-  //   .scaleOrdinal()
-  //   .domain(data.map((d, i) => i))
-  //   .range(["#4daf4a", "#377eb8", "#ff7f00"]);
-
-  // // Define the arc generator for the chart segments
-  // const arc = d3
-  //   .arc()
-  //   .innerRadius(radius * 0.5)
-  //   .outerRadius(radius * 0.8);
-
-  // // Define the arc generator for the hover segments
-  // const hoverArc = d3
-  //   .arc()
-  //   .innerRadius(radius * 0.7)
-  //   .outerRadius(radius * 0.9);
-
-  // // Define the pie generator for the chart data
-  // const pie = d3
-  //   .pie()
-  //   .sort(null)
-  //   .value((d) => d);
-
-  // // Create the SVG element and add a group for the chart
-  // const svg = d3
-  //   .select("#chart2")
-  //   .append("svg")
-  //   .attr("width", width)
-  //   .attr("height", height)
-  //   .append("g")
-  //   .attr("transform", `translate(${width / 2}, ${height / 2})`);
-
-  // // Add the segments to the chart
-  // const segments = svg
-  //   .selectAll("path")
-  //   .data(pie(data))
-  //   .enter()
-  //   .append("path")
-  //   .attr("d", arc)
-  //   .attr("fill", (d, i) => color(i))
-  //   .on("mouseover", function (d) {
-  //     // Get the data for the hover segments
-  //     const hoverData = [70, 20, 10];
-
-  //     // Remove the old hover segments
-  //     svg.selectAll(".hover-segment").remove();
-
-  //     // Add the new hover segments
-  //     svg
-  //       .selectAll(".hover-segment")
-  //       .data(pie(hoverData))
-  //       .enter()
-  //       .append("path")
-  //       .attr("class", "hover-segment")
-  //       .attr("d", hoverArc)
-  //       .attr("fill", (d, i) => color(i))
-  //       .attr("stroke", "white")
-  //       .attr("stroke-width", 2)
-  //       .style("opacity", 0.7)
-  //       .each(function (d) {
-  //         // Store the old data for the hover segment
-  //         this._current = d;
-  //       });
-  //   })
-  //   .on("mouseout", function (d) {
-  //     // Remove the hover segments
-  //     svg.selectAll(".hover-segment").remove();
-  //   });
-
-  //----------------------------------------------------------------------------------------------------------------
-
   var w = 500;
   var h = 500;
 
@@ -316,8 +236,7 @@ function pieChart() {
         .on("mouseout", function (d) {
           console.log("out");
           d3.select(this).transition().duration(200).attr("d", arc);
-          d3.selectAll(".hover-segment path")
-          .attr("opacity", 0);
+          d3.selectAll(".hover-segment path").attr("opacity", 0);
         });
 
       //Text Label
@@ -361,38 +280,120 @@ function pieChart() {
   );
 }
 
+function lineChart() {
+  var w = 800;
+  var h = 300;
+  d3.csv(
+    "data4.csv",
+    function (d) {
+      var parseYear = function (yearString) {
+        var yearParts = yearString.split("-");
+        var year = parseInt(yearParts[0]);
+        return new Date(year, 1);
+      };
+      return {
+        year: parseYear(d.Year),
+        oriYear: d.Year,
+        stud: +d.InternationalStudent,
+        total: +d.Total,
+      };
+    },
+    function (error, data) {
+      if (error) throw error;
+      drawLineChart(data);
+    }
+  );
+  function drawLineChart(data) {
+    console.log(data);
+    var xScale = d3
+      .scaleTime()
+      .domain([
+        d3.min(data, function (d) {
+          return d.year;
+        }),
+        d3.max(data, function (d) {
+          return d.year;
+        }),
+      ])
+      .range([0, w]);
+    var yScale = d3
+      .scaleLinear()
+      .domain([
+        0,
+        d3.max(data, function (d) {
+          return d.total;
+        }),
+      ])
+      .range([h, 0]);
+    var totalLine = d3
+      .line()
+      .x(function (d) {
+        return xScale(d.year);
+      })
+      .y(function (d) {
+        return yScale(d.total);
+      });
+    var studLine = d3
+      .line()
+      .x(function (d) {
+        return xScale(d.year);
+      })
+      .y(function (d) {
+        return yScale(d.stud);
+      });
+    var svg = d3
+      .select("#chart3")
+      .append("svg")
+      .attr("width", w + 20)
+      .attr("height", h + 20);
+    svg.append("path").datum(data).attr("class", "line").attr("d", totalLine);
+    svg.append("path").datum(data).attr("class", "line").attr("d", studLine);
+    var xAxis = d3.axisBottom().ticks(4).scale(xScale);
+    svg
+      .append("g")
+      .attr("transform", "translate(0, " + h + ")")
+      .call(xAxis);
+    var yAxis = d3.axisLeft().ticks(10).scale(yScale);
+    svg
+      .append("g")
+      .attr("transform", "translate(" + 50 + ",0)")
+      .call(yAxis);
+  }
+}
+
 function main() {
-  drawWorldMap("2004-05");
-  pieChart();
-  var slider = d3.select("#slider");
-  // Get value based on slider
-  slider.on("input", function () {
-    //CSV columns
-    var years = [
-      "2004-05",
-      "2005-06",
-      "2006-07",
-      "2007-08",
-      "2008-09",
-      "2009-10",
-      "2010-11",
-      "2011-12",
-      "2012-13",
-      "2013-14",
-      "2014-15",
-      "2015-16",
-      "2016-17",
-      "2017-18",
-      "2018-19",
-      "2019-20",
-      "2020-21",
-      "2021-22(e)",
-    ];
-    var selectedYear = years[this.value - 1];
-    console.log(selectedYear);
-    drawWorldMap(selectedYear);
-    d3.select("#chart1YearText").text("Year: " + selectedYear);
-  });
+  lineChart();
+  // drawWorldMap("2004-05");
+  // pieChart();
+  // var slider = d3.select("#slider");
+  // // Get value based on slider
+  // slider.on("input", function () {
+  //   //CSV columns
+  //   var years = [
+  //     "2004-05",
+  //     "2005-06",
+  //     "2006-07",
+  //     "2007-08",
+  //     "2008-09",
+  //     "2009-10",
+  //     "2010-11",
+  //     "2011-12",
+  //     "2012-13",
+  //     "2013-14",
+  //     "2014-15",
+  //     "2015-16",
+  //     "2016-17",
+  //     "2017-18",
+  //     "2018-19",
+  //     "2019-20",
+  //     "2020-21",
+  //     "2021-22(e)",
+  //   ];
+  //   var selectedYear = years[this.value - 1];
+  //   console.log(selectedYear);
+  //   drawWorldMap(selectedYear);
+  //   d3.select("#chart1YearText").text("Year: " + selectedYear);
+  // });
 }
 
 window.onload = main;
