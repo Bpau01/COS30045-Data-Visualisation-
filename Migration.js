@@ -288,15 +288,15 @@ function pieChart() {
 }
 
 function lineChart() {
-  var w = 800;
-  var h = 300;
+  var w = 1000;
+  var h = 400;
   d3.csv(
     "data4.csv",
     function (d) {
       var parseYear = function (yearString) {
         var yearParts = yearString.split("-");
         var year = parseInt(yearParts[0]);
-        return new Date(year, 1);
+        return new Date(year, 0);
       };
       return {
         year: parseYear(d.Year),
@@ -322,7 +322,7 @@ function lineChart() {
           return d.year;
         }),
       ])
-      .range([0, w]);
+      .range([50, w - 60]);
     var yScale = d3
       .scaleLinear()
       .domain([
@@ -331,7 +331,7 @@ function lineChart() {
           return d.total;
         }),
       ])
-      .range([h, 0]);
+      .range([h, 20]);
     var totalLine = d3
       .line()
       .x(function (d) {
@@ -352,9 +352,64 @@ function lineChart() {
       .select("#chart3")
       .append("svg")
       .attr("width", w + 20)
-      .attr("height", h + 20);
-    svg.append("path").datum(data).attr("class", "line").attr("d", totalLine);
-    svg.append("path").datum(data).attr("class", "line").attr("d", studLine);
+      .attr("height", h + 30);
+
+    svg
+      .append("path")
+      .datum(data)
+      .attr("class", "line total-line")
+      .attr("d", totalLine)
+      .style("stroke", "red")
+      .on("click", function () {
+        var clickedLine = d3.select(this);
+        var isLineColored = clickedLine.style("stroke") !== "red";
+        svg.selectAll(".total-circle").style("opacity", isLineColored ? 0 : 1);
+        clickedLine.style("stroke", isLineColored ? "red" : "#000");
+      });
+
+    svg
+      .append("path")
+      .datum(data)
+      .attr("class", "line stud-line")
+      .attr("d", studLine)
+      .style("stroke", "blue")
+      .on("click", function () {
+        var clickedLine = d3.select(this);
+        var isLineColored = clickedLine.style("stroke") !== "blue";
+        svg.selectAll(".stud-circle").style("opacity", isLineColored ? 0 : 1);
+        clickedLine.style("stroke", isLineColored ? "blue" : "#000");
+      });
+
+    svg
+      .selectAll(".total-circle")
+      .data(data)
+      .enter()
+      .append("circle")
+      .attr("class", "total-circle")
+      .attr("cx", function (d) {
+        return xScale(d.year);
+      })
+      .attr("cy", function (d) {
+        return yScale(d.total);
+      })
+      .attr("r", 4)
+      .style("opacity", 0);
+
+    svg
+      .selectAll(".stud-circle")
+      .data(data)
+      .enter()
+      .append("circle")
+      .attr("class", "stud-circle")
+      .attr("cx", function (d) {
+        return xScale(d.year);
+      })
+      .attr("cy", function (d) {
+        return yScale(d.stud);
+      })
+      .attr("r", 4)
+      .style("opacity", 0);
+
     var xAxis = d3.axisBottom().ticks(4).scale(xScale);
     svg
       .append("g")
