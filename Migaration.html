@@ -22,16 +22,15 @@
 
 		#slider {
 			-webkit-appearance: none;
-			width: 30%;
-			height: 20px;
-			margin-left: auto;
-			margin-right: auto;
+			appearance: none;
+			width: 80%;
+			height: 8px;
+			margin: 0 auto;
 			display: block;
-			border-radius: 5px;
-			background: #d7d7d7;
+			border-radius: 4px;
+			background: #f5ddc2;
 			outline: none;
 			opacity: 0.7;
-			-webkit-transition: opacity 0.2s;
 			transition: opacity 0.2s;
 		}
 
@@ -45,13 +44,36 @@
 			width: 20px;
 			height: 20px;
 			border-radius: 50%;
-			background: #000000;
+			background: #b26411;
 			cursor: pointer;
 		}
+
+		.slider-label {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-top: 10px;
+			font-family: Arial, sans-serif;
+			font-size: 14px;
+		}
+
+
 		.line {
-  			fill: none;
-  			stroke: black; /* Set the desired stroke color */
-  			stroke-width: 2px; /* Set the desired stroke width */
+			fill: none;
+			stroke: black;
+			/* Set the desired stroke color */
+			stroke-width: 2px;
+			/* Set the desired stroke width */
+		}
+
+		.slider-label {
+			display: flex;
+			justify-content: space-between;
+			margin-top: 10px;
+		}
+
+		.slider-label p {
+			margin: 0;
 		}
 	</style>
 
@@ -66,11 +88,14 @@
 
 	<div class="slider">
 		<input id="slider" type="range" min="1" max="18" value="18" step="1" class="slider" />
-		<p>2004</p>
-		<p>2022</p>
+		<div class="slider-label">
+			<p>2004</p>
+			<p>2022</p>
+		</div>
 	</div>
-
+	<h1>Breakdown on Visa Type of Immigrants into Australia</h1>
 	<p id="chart2"></p>
+	<h1>Relationship of How International Students Affect The Number of Immigrants in Australia</h1>
 	<p id="chart3"></p>
 	<br>
 	<br>

@@ -80,9 +80,7 @@ function drawWorldMap(year) {
           .attr("d", path)
           .attr("fill", function (world) {
             var value = world.properties.value;
-            // if (value === undefined || value === null) {
-            //   console.log(world.properties.name);
-            // }
+
             if (value >= 3000) {
               return color.range()[4];
             } else if (value >= 1000 && value < 3000) {
@@ -98,7 +96,7 @@ function drawWorldMap(year) {
             }
           })
           .on("mouseover", function (world) {
-            d3.select(this).attr("fill", "blue");
+            d3.select(this).attr("fill", "#A4028E");
             d3.select("#chart1ValueText").text(
               world.properties.name + ", " + world.properties.value
             );
@@ -133,6 +131,7 @@ function pieChart() {
     function (d) {
       return {
         group: d["Visa groupings(d)"],
+        detailedGroup: d["Detailed Visa groupings"],
         value: parseFloat(d.Total.replace(/,/g, "")),
       };
     },
@@ -171,8 +170,8 @@ function pieChart() {
       var svg = d3
         .select("#chart2")
         .append("svg")
-        .attr("width", 900)
-        .attr("height", 900);
+        .attr("width", "100%")
+        .attr("height", 1100);
 
       var arcs = svg
         .selectAll("g.arc")
@@ -182,7 +181,18 @@ function pieChart() {
         .attr("class", "arc")
         .attr(
           "transform",
-          "translate(" + (outerRadius + 150) + "," + (outerRadius + 100) + ")"
+          "translate(" + (outerRadius + 500) + "," + (outerRadius + 300) + ")"
+        );
+
+      var hoverArcs = svg
+        .selectAll(".hover-segment")
+        .data(pie(data))
+        .enter()
+        .append("g")
+        .attr("class", "hover-segment")
+        .attr(
+          "transform",
+          "translate(" + (outerRadius + 500) + "," + (outerRadius + 300) + ")"
         );
 
       //Color from d3 library
@@ -212,7 +222,14 @@ function pieChart() {
 
           currentGroup = d.data.group;
           d3.selectAll(".hover-segment path")
+            .filter(function (hover) {
+              return hover.data.group === currentGroup;
+            })
+            .transition()
+            .duration(200)
+            .attr("opacity", "1");
 
+          d3.selectAll(".hover-segment text")
             .filter(function (hover) {
               return hover.data.group === currentGroup;
             })
@@ -223,6 +240,7 @@ function pieChart() {
         .on("mouseout", function (d) {
           d3.select(this).transition().duration(200).attr("d", arc);
           d3.selectAll(".hover-segment path").attr("opacity", "0");
+          d3.selectAll(".hover-segment text").attr("opacity", "0");
         });
 
       //Text Label
@@ -236,42 +254,38 @@ function pieChart() {
           return d.data.group + ": " + percent + "%";
         })
         .attr("transform", function (d) {
-          return "translate(" + arc.centroid(d) + ")";
+          var centroid = arc.centroid(d);
+          var offsetX = -70;
+          var offsetY = 0;
+          var newX = centroid[0] + offsetX;
+          var newY = centroid[1] + offsetY;
+          return "translate(" + newX + "," + newY + ")";
         })
         .raise();
 
       //Hover Chart
-      svg
-        .selectAll(".hover-segment")
-        .data(pie(data))
-        .enter()
-        .append("g")
-        .attr("class", "hover-segment")
-        .attr(
-          "transform",
-          "translate(" + (outerRadius + 150) + "," + (outerRadius + 100) + ")"
-        )
+      hoverArcs
         .append("path")
         .attr("fill", function (d, i) {
           var greenScale = d3
             .scaleSequential()
-            .domain([11, 15])
+            .domain([10, 15])
             .interpolator(d3.interpolateGreens);
           var blueScale = d3
             .scaleSequential()
-            .domain([0, 4])
+            .domain([0, 1])
             .interpolator(d3.interpolateBlues);
           var orangeScale = d3
             .scaleSequential()
-            .domain([6, 15])
+            .domain([5, 10])
             .interpolator(d3.interpolateOranges);
           //console.log(d.data);
           if (d.data.group == "Others") {
             return greenScale(i);
           } else if (d.data.group == "Temporary visas") {
+            console.log(i);
             return orangeScale(i);
           } else if (d.data.group == "Permanent visas") {
-            console.log(i);
             return blueScale(i / 3);
           }
           return color(i);
@@ -280,7 +294,26 @@ function pieChart() {
           return hoverArc(d, i);
         })
         .attr("opacity", "0");
-      //.attr("stroke", "black");
+
+      //Text Label for hover chart
+      hoverArcs
+        .append("text")
+        .text(function (d) {
+          //console.log(d.data);
+          return d.data.detailedGroup + ": " + d.data.value;
+        })
+        .attr("transform", function (d, i) {
+          var centroid = hoverArc.centroid(d);
+          var radius = outerRadius + 1000;
+          var angle = Math.atan2(centroid[1], centroid[0]);
+          var offsetX = Math.cos(angle) * radius * 0.2;
+          var offsetY = Math.sin(angle) * radius * 0.15;
+          var newX = centroid[0] + offsetX;
+          var newY = centroid[1] + offsetY;
+          //console.log(centroid);
+          return "translate(" + newX + "," + newY + ")";
+        })
+        .attr("opacity", "0");
 
       arcs.raise();
     }
@@ -311,7 +344,7 @@ function lineChart() {
     }
   );
   function drawLineChart(data) {
-    console.log(data);
+    // console.log(data);
     var xScale = d3
       .scaleTime()
       .domain([
@@ -360,11 +393,26 @@ function lineChart() {
       .attr("class", "line total-line")
       .attr("d", totalLine)
       .style("stroke", "red")
+      .style("stroke-width", "4px")
       .on("click", function () {
         var clickedLine = d3.select(this);
         var isLineColored = clickedLine.style("stroke") !== "red";
         svg.selectAll(".total-circle").style("opacity", isLineColored ? 0 : 1);
         clickedLine.style("stroke", isLineColored ? "red" : "#000");
+        svg.selectAll(".total-label").attr("opacity", function () {
+          var currentOpacity = d3.select(this).attr("opacity");
+          if (currentOpacity === "0") {
+            return "1";
+          } else {
+            return "0";
+          }
+        });
+      })
+      .on("mouseover", function () {
+        d3.select(this).style("cursor", "pointer");
+      })
+      .on("mouseout", function () {
+        d3.select(this).style("cursor", "default");
       });
 
     svg
@@ -373,11 +421,26 @@ function lineChart() {
       .attr("class", "line stud-line")
       .attr("d", studLine)
       .style("stroke", "blue")
+      .style("stroke-width", "4px")
       .on("click", function () {
         var clickedLine = d3.select(this);
         var isLineColored = clickedLine.style("stroke") !== "blue";
         svg.selectAll(".stud-circle").style("opacity", isLineColored ? 0 : 1);
         clickedLine.style("stroke", isLineColored ? "blue" : "#000");
+        svg.selectAll(".stud-label").attr("opacity", function () {
+          var currentOpacity = d3.select(this).attr("opacity");
+          if (currentOpacity === "0") {
+            return "1";
+          } else {
+            return "0";
+          }
+        });
+      })
+      .on("mouseover", function () {
+        d3.select(this).style("cursor", "pointer");
+      })
+      .on("mouseout", function () {
+        d3.select(this).style("cursor", "default");
       });
 
     svg
@@ -410,6 +473,7 @@ function lineChart() {
       .attr("r", 4)
       .style("opacity", 0);
 
+    //X and y Axis
     var xAxis = d3.axisBottom().ticks(4).scale(xScale);
     svg
       .append("g")
@@ -420,6 +484,41 @@ function lineChart() {
       .append("g")
       .attr("transform", "translate(" + 50 + ",0)")
       .call(yAxis);
+
+    //Data Label
+    svg
+      .selectAll(".total-label")
+      .data(data)
+      .enter()
+      .append("text")
+      .attr("class", "total-label")
+      .attr("x", function (d) {
+        return xScale(d.year);
+      })
+      .attr("y", function (d) {
+        return yScale(d.total) - 20;
+      })
+      .text(function (d) {
+        return d.total;
+      })
+      .attr("opacity", "0");
+
+    svg
+      .selectAll(".stud-label")
+      .data(data)
+      .enter()
+      .append("text")
+      .attr("class", "stud-label")
+      .attr("x", function (d) {
+        return xScale(d.year);
+      })
+      .attr("y", function (d) {
+        return yScale(d.stud) - 20;
+      })
+      .text(function (d) {
+        return d.stud;
+      })
+      .attr("opacity", "0");
   }
 }
 
