@@ -126,6 +126,8 @@ function pieChart() {
   var w = 500;
   var h = 500;
 
+  //To be determined
+  var pieColor = ["#2060D8", "#FF965E", "#A920D8  "];
   d3.csv(
     "data2.csv",
     function (d) {
@@ -140,6 +142,27 @@ function pieChart() {
       const dataByGroup = d3.group(data, (d) => d.group);
       const dataset = Array.from(dataByGroup, ([group, value]) => {
         return { group, value: d3.sum(value, (d) => d.value) };
+      });
+
+      const sortedData = data.slice().sort(function (a, b) {
+        // Sort by group
+        if (a.group < b.group) {
+          return -1;
+        }
+        if (a.group > b.group) {
+          return 1;
+        }
+
+        //Sort by Value
+        if (a.value < b.value) {
+          return -1;
+        }
+        if (a.value > b.value) {
+          return 1;
+        }
+
+        // If both group and value are the same, return 0
+        return 0;
       });
 
       //Inner and Outer Radius for Drawing the Pir Chart
@@ -186,7 +209,7 @@ function pieChart() {
 
       var hoverArcs = svg
         .selectAll(".hover-segment")
-        .data(pie(data))
+        .data(pie(sortedData))
         .enter()
         .append("g")
         .attr("class", "hover-segment")
@@ -269,24 +292,22 @@ function pieChart() {
         .attr("fill", function (d, i) {
           var greenScale = d3
             .scaleSequential()
-            .domain([10, 15])
+            .domain([-1, 3])
             .interpolator(d3.interpolateGreens);
           var blueScale = d3
             .scaleSequential()
-            .domain([0, 1])
+            .domain([0, 5])
             .interpolator(d3.interpolateBlues);
           var orangeScale = d3
             .scaleSequential()
-            .domain([5, 10])
+            .domain([6, 12])
             .interpolator(d3.interpolateOranges);
-          //console.log(d.data);
           if (d.data.group == "Others") {
             return greenScale(i);
           } else if (d.data.group == "Temporary visas") {
-            console.log(i);
             return orangeScale(i);
           } else if (d.data.group == "Permanent visas") {
-            return blueScale(i / 3);
+            return blueScale(i);
           }
           return color(i);
         })
@@ -308,7 +329,7 @@ function pieChart() {
           var angle = Math.atan2(centroid[1], centroid[0]);
           var offsetX = Math.cos(angle) * radius * 0.2;
           var offsetY = Math.sin(angle) * radius * 0.15;
-          var newX = centroid[0] + offsetX;
+          var newX = centroid[0] + offsetX - 100;
           var newY = centroid[1] + offsetY;
           //console.log(centroid);
           return "translate(" + newX + "," + newY + ")";
@@ -322,7 +343,7 @@ function pieChart() {
 
 function lineChart() {
   var w = 1000;
-  var h = 400;
+  var h = 600;
   d3.csv(
     "data4.csv",
     function (d) {
@@ -343,6 +364,7 @@ function lineChart() {
       drawLineChart(data);
     }
   );
+
   function drawLineChart(data) {
     // console.log(data);
     var xScale = d3
@@ -364,7 +386,7 @@ function lineChart() {
           return d.total;
         }),
       ])
-      .range([h, 20]);
+      .range([h, 120]);
     var totalLine = d3
       .line()
       .x(function (d) {
@@ -392,13 +414,17 @@ function lineChart() {
       .datum(data)
       .attr("class", "line total-line")
       .attr("d", totalLine)
-      .style("stroke", "red")
+      .style("stroke", "#540FAC")
       .style("stroke-width", "4px")
       .on("click", function () {
         var clickedLine = d3.select(this);
-        var isLineColored = clickedLine.style("stroke") !== "red";
+        console.log(clickedLine.style("stroke"));
+        var isLineColored =
+          clickedLine.style("stroke") !== d3.color("#540FAC").rgb().toString();
+        console.log(isLineColored);
         svg.selectAll(".total-circle").style("opacity", isLineColored ? 0 : 1);
-        clickedLine.style("stroke", isLineColored ? "red" : "#000");
+        clickedLine.style("stroke", isLineColored ? "#540FAC" : "#000");
+
         svg.selectAll(".total-label").attr("opacity", function () {
           var currentOpacity = d3.select(this).attr("opacity");
           if (currentOpacity === "0") {
@@ -420,13 +446,14 @@ function lineChart() {
       .datum(data)
       .attr("class", "line stud-line")
       .attr("d", studLine)
-      .style("stroke", "blue")
+      .style("stroke", "#D3B0E6")
       .style("stroke-width", "4px")
       .on("click", function () {
         var clickedLine = d3.select(this);
-        var isLineColored = clickedLine.style("stroke") !== "blue";
+        var isLineColored =
+          clickedLine.style("stroke") !== d3.color("#D3B0E6").rgb().toString();
         svg.selectAll(".stud-circle").style("opacity", isLineColored ? 0 : 1);
-        clickedLine.style("stroke", isLineColored ? "blue" : "#000");
+        clickedLine.style("stroke", isLineColored ? "#D3B0E6" : "#000");
         svg.selectAll(".stud-label").attr("opacity", function () {
           var currentOpacity = d3.select(this).attr("opacity");
           if (currentOpacity === "0") {
@@ -443,6 +470,7 @@ function lineChart() {
         d3.select(this).style("cursor", "default");
       });
 
+    //Dotted circle on line
     svg
       .selectAll(".total-circle")
       .data(data)
@@ -456,8 +484,7 @@ function lineChart() {
         return yScale(d.total);
       })
       .attr("r", 4)
-      .style("opacity", 0);
-
+      .style("opacity", "0");
     svg
       .selectAll(".stud-circle")
       .data(data)
@@ -502,7 +529,6 @@ function lineChart() {
         return d.total;
       })
       .attr("opacity", "0");
-
     svg
       .selectAll(".stud-label")
       .data(data)
@@ -519,6 +545,46 @@ function lineChart() {
         return d.stud;
       })
       .attr("opacity", "0");
+
+    //Legend
+    var colors = ["#540FAC", "#D3B0E6"];
+    var data = [
+      { label: "Number of Immigrants into Australia" },
+      { label: "Number of International student" },
+    ];
+    var legend = svg
+      .append("g")
+      .attr("class", "legend")
+      .attr("transform", "translate(" + (w - 300) + ", 20)");
+    var legendItems = legend
+      .selectAll(".legend-item")
+      .data(
+        data.map(function (d) {
+          return d.label;
+        })
+      )
+      .enter()
+      .append("g")
+      .attr("class", "legend-item")
+      .attr("transform", function (d, i) {
+        return "translate(0, " + i * 20 + ")";
+      });
+    legendItems
+      .append("rect")
+      .attr("x", 0)
+      .attr("y", 0)
+      .attr("width", 10)
+      .attr("height", 10)
+      .style("fill", function (d, i) {
+        return colors[i];
+      });
+    legendItems
+      .append("text")
+      .attr("x", 20)
+      .attr("y", 10)
+      .text(function (d) {
+        return d;
+      });
   }
 }
 
