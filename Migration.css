@@ -64,3 +64,18 @@ h2,
 h3 {
 	text-align: center;
 }
+
+
+.chartContainer {
+	opacity: 0;
+	transition: opacity 0.5s ease;
+  }
+  
+  .chartContainer.active {
+	opacity: 1;
+  }
+
+  #chart0Container{
+	opacity: 1;
+  }
+  

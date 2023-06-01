@@ -1,6 +1,6 @@
 function drawWorldMap(year) {
-  var w = 1000;
-  var h = 400;
+  var w = 1300;
+  var h = 500;
 
   //Colour range for the map value
   var color = d3
@@ -117,6 +117,60 @@ function drawWorldMap(year) {
               d3.select(this).attr("fill", color.range()[5]);
             }
           });
+
+        //Legend
+        var colors = [
+          "#a63603",
+          "#e6550d",
+          "#fd8d3c",
+          "#fdbe85",
+          "#feedde",
+          "#808080",
+        ];
+        var legendData = [
+          { label: "3000+" },
+          { label: "1000 - 2999" },
+          { label: "500 - 999" },
+          { label: "200 - 499" },
+          { label: "<200" },
+          { label: "undefined" },
+        ];
+        var legend = svg
+          .append("g")
+          .attr("class", "legend")
+          .attr("transform", "translate(" + 0 + ", " + 30 + ")");
+        var legendItems = legend
+          .selectAll(".legend-item")
+          .data(
+            legendData.map(function (d) {
+              return d.label;
+            })
+          )
+          .enter()
+          .append("g")
+          .attr("class", "legend-item")
+          .attr("transform", function (d, i) {
+            return "translate(0, " + i * 20 + ")";
+          });
+        legendItems
+          .append("rect")
+          .attr("x", 0)
+          .attr("y", 0)
+          .attr("width", 10)
+          .attr("height", 10)
+          .style("fill", function (d, i) {
+            return colors[i];
+          });
+        legendItems
+          .append("text")
+          .attr("x", 20)
+          .attr("y", 10)
+          .style("fill", "black")
+          .attr("stroke", "none")
+          .text(function (d) {
+            console.log("Current text color:", d3.select(this).style("fill"));
+            return d;
+          });
       });
     }
   );
@@ -204,7 +258,7 @@ function pieChart() {
         .attr("class", "arc")
         .attr(
           "transform",
-          "translate(" + (outerRadius + 500) + "," + (outerRadius + 300) + ")"
+          "translate(" + (outerRadius + 500) + "," + (outerRadius + 200) + ")"
         );
 
       var hoverArcs = svg
@@ -215,7 +269,7 @@ function pieChart() {
         .attr("class", "hover-segment")
         .attr(
           "transform",
-          "translate(" + (outerRadius + 500) + "," + (outerRadius + 300) + ")"
+          "translate(" + (outerRadius + 500) + "," + (outerRadius + 200) + ")"
         );
 
       //Color from d3 library
@@ -337,6 +391,47 @@ function pieChart() {
         .attr("opacity", "0");
 
       arcs.raise();
+
+      //Legend
+      var colors = ["#f28305", "#324c8f", "#328f38"];
+      var data = [
+        { label: "Temporary Visa" },
+        { label: "Permanent Visa" },
+        { label: "Others" },
+      ];
+      var legend = svg
+        .append("g")
+        .attr("class", "legend")
+        .attr("transform", "translate(" + (w - 300) + ", " + (h - 200) + ")");
+      var legendItems = legend
+        .selectAll(".legend-item")
+        .data(
+          data.map(function (d) {
+            return d.label;
+          })
+        )
+        .enter()
+        .append("g")
+        .attr("class", "legend-item")
+        .attr("transform", function (d, i) {
+          return "translate(0, " + i * 20 + ")";
+        });
+      legendItems
+        .append("rect")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", 10)
+        .attr("height", 10)
+        .style("fill", function (d, i) {
+          return colors[i];
+        });
+      legendItems
+        .append("text")
+        .attr("x", 20)
+        .attr("y", 10)
+        .text(function (d) {
+          return d;
+        });
     }
   );
 }
@@ -407,7 +502,9 @@ function lineChart() {
       .select("#chart3")
       .append("svg")
       .attr("width", w + 20)
-      .attr("height", h + 30);
+      .attr("height", h + 30)
+      .append("g")
+      .attr("transform", "translate(" + 15 + ", 0)");
 
     svg
       .append("path")
@@ -505,12 +602,17 @@ function lineChart() {
     svg
       .append("g")
       .attr("transform", "translate(0, " + h + ")")
-      .call(xAxis);
+      .call(xAxis)
+      .selectAll("text")
+      .style("font-size", "15px");
+
     var yAxis = d3.axisLeft().ticks(10).scale(yScale);
     svg
       .append("g")
       .attr("transform", "translate(" + 50 + ",0)")
-      .call(yAxis);
+      .call(yAxis)
+      .selectAll("text")
+      .style("font-size", "15px");
 
     //Data Label
     svg
@@ -555,7 +657,7 @@ function lineChart() {
     var legend = svg
       .append("g")
       .attr("class", "legend")
-      .attr("transform", "translate(" + (w - 300) + ", 20)");
+      .attr("transform", "translate(" + (w - 300) + ", " + 70 + ")");
     var legendItems = legend
       .selectAll(".legend-item")
       .data(
@@ -590,21 +692,13 @@ function lineChart() {
 
 function main() {
   lineChart();
-  drawWorldMap("2004-05");
+  drawWorldMap("2012-13");
   pieChart();
   var slider = d3.select("#slider");
   // Get value based on slider
   slider.on("input", function () {
     //CSV columns
     var years = [
-      "2004-05",
-      "2005-06",
-      "2006-07",
-      "2007-08",
-      "2008-09",
-      "2009-10",
-      "2010-11",
-      "2011-12",
       "2012-13",
       "2013-14",
       "2014-15",
@@ -620,6 +714,24 @@ function main() {
     console.log(selectedYear);
     drawWorldMap(selectedYear);
     d3.select("#chart1YearText").text("Year: " + selectedYear);
+  });
+
+  var chartContainers = document.getElementsByClassName("chartContainer");
+
+  window.addEventListener("scroll", function () {
+    var scrollPosition = window.scrollY;
+
+    for (var i = 0; i < chartContainers.length; i++) {
+      var chartContainer = chartContainers[i];
+      var containerPosition = chartContainer.offsetTop;
+      var activationPoint = containerPosition - 200;
+
+      if (scrollPosition >= activationPoint) {
+        chartContainer.classList.add("active");
+      } else {
+        chartContainer.classList.remove("active");
+      }
+    }
   });
 }
 
