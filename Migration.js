@@ -98,7 +98,10 @@ function drawWorldMap(year) {
           .on("mouseover", function (world) {
             d3.select(this).attr("fill", "#A4028E");
             d3.select("#chart1ValueText").text(
-              world.properties.name + ", " + world.properties.value
+              "Country: " +
+                world.properties.name +
+                ", " +
+                world.properties.value
             );
           })
           .on("mouseout", function () {
@@ -138,7 +141,7 @@ function drawWorldMap(year) {
         var legend = svg
           .append("g")
           .attr("class", "legend")
-          .attr("transform", "translate(" + 0 + ", " + 30 + ")");
+          .attr("transform", "translate(" + 1150 + ", " + 30 + ")");
         var legendItems = legend
           .selectAll(".legend-item")
           .data(
@@ -181,7 +184,6 @@ function pieChart() {
   var h = 500;
 
   //To be determined
-  var pieColor = ["#2060D8", "#FF965E", "#A920D8  "];
   d3.csv(
     "data2.csv",
     function (d) {
@@ -248,7 +250,7 @@ function pieChart() {
         .select("#chart2")
         .append("svg")
         .attr("width", "100%")
-        .attr("height", 1100);
+        .attr("height", 800);
 
       var arcs = svg
         .selectAll("g.arc")
@@ -284,6 +286,8 @@ function pieChart() {
         .attr("d", function (d, i) {
           return arc(d, i);
         })
+        .attr("stroke", "black")
+        .style("stroke-width", "2px")
         .on("mouseover", function (d) {
           //Push the segmants outwards
           d3.select(this)
@@ -332,15 +336,17 @@ function pieChart() {
         })
         .attr("transform", function (d) {
           var centroid = arc.centroid(d);
-          var offsetX = -70;
+          var offsetX = -80;
           var offsetY = 0;
           var newX = centroid[0] + offsetX;
           var newY = centroid[1] + offsetY;
           return "translate(" + newX + "," + newY + ")";
         })
+        .attr("font-size", "20px")
+        .style("font-weight", "bold")
         .raise();
 
-      //Hover Chart
+      //Drawing of Hover Chart (The 2nd donut chart behind)
       hoverArcs
         .append("path")
         .attr("fill", function (d, i) {
@@ -368,7 +374,9 @@ function pieChart() {
         .attr("d", function (d, i) {
           return hoverArc(d, i);
         })
-        .attr("opacity", "0");
+        .attr("opacity", "0")
+        .attr("stroke", "black")
+        .style("stroke-width", "2px");
 
       //Text Label for hover chart
       hoverArcs
@@ -402,7 +410,7 @@ function pieChart() {
       var legend = svg
         .append("g")
         .attr("class", "legend")
-        .attr("transform", "translate(" + (w - 300) + ", " + (h - 200) + ")");
+        .attr("transform", "translate(" + (w + 650) + ", " + (h - 200) + ")");
       var legendItems = legend
         .selectAll(".legend-item")
         .data(
@@ -716,6 +724,7 @@ function main() {
     d3.select("#chart1YearText").text("Year: " + selectedYear);
   });
 
+  //Scroll Event
   var chartContainers = document.getElementsByClassName("chartContainer");
 
   window.addEventListener("scroll", function () {
