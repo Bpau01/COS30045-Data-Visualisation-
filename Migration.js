@@ -1,6 +1,6 @@
 function drawWorldMap(year) {
   var w = 1300;
-  var h = 500;
+  var h = 450;
 
   //Colour range for the map value
   var color = d3
@@ -260,7 +260,7 @@ function pieChart() {
         .attr("class", "arc")
         .attr(
           "transform",
-          "translate(" + (outerRadius + 475) + "," + (outerRadius + 250) + ")"
+          "translate(" + (outerRadius + 425) + "," + (outerRadius + 250) + ")"
         );
 
       var hoverArcs = svg
@@ -271,7 +271,7 @@ function pieChart() {
         .attr("class", "hover-segment")
         .attr(
           "transform",
-          "translate(" + (outerRadius + 475) + "," + (outerRadius + 250) + ")"
+          "translate(" + (outerRadius + 425) + "," + (outerRadius + 250) + ")"
         );
 
       //Color from d3 library
@@ -569,7 +569,6 @@ function lineChart() {
         console.log(isLineColored);
         svg.selectAll(".total-circle").style("opacity", isLineColored ? 0 : 1);
         clickedLine.style("stroke", isLineColored ? "#540FAC" : "#000");
-
         svg.selectAll(".total-label").attr("opacity", function () {
           var currentOpacity = d3.select(this).attr("opacity");
           if (currentOpacity === "0") {
@@ -581,9 +580,13 @@ function lineChart() {
       })
       .on("mouseover", function () {
         d3.select(this).style("cursor", "pointer");
+        // svg.selectAll(".total-circle").style("opacity", "1");
+        // d3.select(this).style("stroke", "#000");
       })
       .on("mouseout", function () {
         d3.select(this).style("cursor", "default");
+        // svg.selectAll(".total-circle").style("opacity", "0");
+        // d3.select(this).style("stroke", "#540FAC");
       });
 
     svg
