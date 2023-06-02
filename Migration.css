@@ -8,8 +8,8 @@ svg {
 #slider {
     -webkit-appearance: none;
 	appearance: none;
-	width: 80%;
-	height: 8px;
+	width: 20%;
+	height: 5px;
 	margin: 0 auto;
 	display: block;
 	border-radius: 4px;
@@ -39,7 +39,15 @@ svg {
 	align-items: center;
 	margin-top: 10px;
 	font-family: Arial, sans-serif;
-	font-size: 14px;
+	font-size: 20px;
+	font-weight: bold;
+}
+#slider-label1{
+	margin-left: 40%;
+}
+
+#slider-label2{
+	margin-right: 40%;
 }
 
 
@@ -47,16 +55,6 @@ svg {
 	fill: none;
 	stroke: black;
 	stroke-width: 2px;
-}
-
-.slider-label {
-	display: flex;
-	justify-content: space-between;
-	margin-top: 10px;
-}
-
-.slider-label p {
-	margin: 0;
 }
 
 h1,

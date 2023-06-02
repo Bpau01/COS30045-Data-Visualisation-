@@ -230,7 +230,7 @@ function pieChart() {
       const hoverArc = d3
         .arc()
         .innerRadius(innerRadius + 50)
-        .outerRadius(outerRadius + 100);
+        .outerRadius(outerRadius + 130);
 
       var pie = d3
         .pie()
@@ -250,7 +250,7 @@ function pieChart() {
         .select("#chart2")
         .append("svg")
         .attr("width", "100%")
-        .attr("height", 800);
+        .attr("height", 1000);
 
       var arcs = svg
         .selectAll("g.arc")
@@ -260,7 +260,7 @@ function pieChart() {
         .attr("class", "arc")
         .attr(
           "transform",
-          "translate(" + (outerRadius + 500) + "," + (outerRadius + 200) + ")"
+          "translate(" + (outerRadius + 475) + "," + (outerRadius + 250) + ")"
         );
 
       var hoverArcs = svg
@@ -271,7 +271,7 @@ function pieChart() {
         .attr("class", "hover-segment")
         .attr(
           "transform",
-          "translate(" + (outerRadius + 500) + "," + (outerRadius + 200) + ")"
+          "translate(" + (outerRadius + 475) + "," + (outerRadius + 250) + ")"
         );
 
       //Color from d3 library
@@ -308,7 +308,7 @@ function pieChart() {
             })
             .transition()
             .duration(200)
-            .attr("opacity", "1");
+            .attr("opacity", "0.8");
 
           d3.selectAll(".hover-segment text")
             .filter(function (hover) {
@@ -378,7 +378,7 @@ function pieChart() {
         .attr("stroke", "black")
         .style("stroke-width", "2px");
 
-      //Text Label for hover chart
+      //Data Label for hover chart
       hoverArcs
         .append("text")
         .text(function (d) {
@@ -396,7 +396,8 @@ function pieChart() {
           //console.log(centroid);
           return "translate(" + newX + "," + newY + ")";
         })
-        .attr("opacity", "0");
+        .attr("opacity", "0")
+        .attr("font-weight", "bold");
 
       arcs.raise();
 
@@ -440,6 +441,46 @@ function pieChart() {
         .text(function (d) {
           return d;
         });
+
+      // var colors2 = ["#000", "#000", "#328f38"];
+      // var data2 = [
+      //   { label: "Temawefasy Visa" },
+      //   { label: "Permanent Visa" },
+      //   { label: "Others" },
+      // ];
+      // var legend2 = svg
+      //   .append("g")
+      //   .attr("class", "legend")
+      //   .attr("transform", "translate(" + (w + 650) + ", " + (h - 20) + ")");
+      // var legendItems2 = legend2
+      //   .selectAll(".legend-item")
+      //   .data(
+      //     data2.map(function (d) {
+      //       return d.label;
+      //     })
+      //   )
+      //   .enter()
+      //   .append("g")
+      //   .attr("class", "legend-item")
+      //   .attr("transform", function (d, i) {
+      //     return "translate(0, " + i * 20 + ")";
+      //   });
+      // legendItems2
+      //   .append("rect")
+      //   .attr("x", 0)
+      //   .attr("y", 0)
+      //   .attr("width", 10)
+      //   .attr("height", 10)
+      //   .style("fill", function (d, i) {
+      //     return colors2[i];
+      //   });
+      // legendItems2
+      //   .append("text")
+      //   .attr("x", 20)
+      //   .attr("y", 10)
+      //   .text(function (d) {
+      //     return d;
+      //   });
     }
   );
 }
@@ -469,7 +510,6 @@ function lineChart() {
   );
 
   function drawLineChart(data) {
-    // console.log(data);
     var xScale = d3
       .scaleTime()
       .domain([
