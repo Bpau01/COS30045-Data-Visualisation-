@@ -1,3 +1,50 @@
+function main() {
+  lineChart();
+  drawWorldMap("2012-13");
+  donutChart();
+  var slider = d3.select("#slider");
+  // Get value based on slider
+  slider.on("input", function () {
+    //CSV columns
+    var years = [
+      "2012-13",
+      "2013-14",
+      "2014-15",
+      "2015-16",
+      "2016-17",
+      "2017-18",
+      "2018-19",
+      "2019-20",
+      "2020-21",
+      "2021-22(e)",
+    ];
+    var selectedYear = years[this.value - 1];
+    console.log(selectedYear);
+    drawWorldMap(selectedYear);
+    d3.select("#chart1YearText").text("Year: " + selectedYear);
+  });
+
+  //Scroll Event
+  //When the webpage is scrolled to the position, set the chartContainer to active to display the container
+  //When the container is being scrolled out of the webpage, remove the chartContainer from active to set the opacity to 0
+  var chartContainers = document.getElementsByClassName("chartContainer");
+  window.addEventListener("scroll", function () {
+    var scrollPosition = window.scrollY;
+    for (var i = 0; i < chartContainers.length; i++) {
+      var chartContainer = chartContainers[i];
+      var containerPosition = chartContainer.offsetTop;
+      var activationPoint = containerPosition - 200;
+
+      if (scrollPosition >= activationPoint) {
+        chartContainer.classList.add("active");
+      } else {
+        chartContainer.classList.remove("active");
+      }
+    }
+  });
+}
+
+//D3 function to draw the choropleth map
 function drawWorldMap(year) {
   var w = 1300;
   var h = 450;
@@ -7,6 +54,8 @@ function drawWorldMap(year) {
     .scaleQuantize()
     .range(["#feedde", "#fdbe85", "#fd8d3c", "#e6550d", "#a63603", "#808080"]);
 
+  //Replacement of the countries name so that the countries name matches from JSON and the data sources match
+  //Only the countries that have different name are listed below
   var nameMap = {
     "Western Sahara": "W. Sahara",
     USA: "United States of America",
@@ -31,6 +80,7 @@ function drawWorldMap(year) {
 
   //Remove existing map
   d3.select("#chart1 svg").remove();
+
   var svg = d3
     .select("#chart1")
     .append("svg")
@@ -39,12 +89,15 @@ function drawWorldMap(year) {
     .attr("fill", "grey")
     .attr("stroke", "white");
 
+  //Scale the map so that its at the centre and the sizing is correct
   var projection = d3
     .geoMercator()
     .scale(130)
     .translate([w / 2, h / 1.4]);
 
   var path = d3.geoPath().projection(projection);
+
+  //Reading data1
   d3.csv(
     "data1.csv",
     function (d) {
@@ -72,6 +125,8 @@ function drawWorldMap(year) {
           }
         }
 
+        //Drawing the choropleth map using the JSON file using differnt colours
+        //Mouseover effects to allow selection of the countries and display the value of the country
         svg
           .selectAll("path")
           .data(topojson.feature(world, world.objects.countries).features)
@@ -121,7 +176,7 @@ function drawWorldMap(year) {
             }
           });
 
-        //Legend
+        //Legend for choropleth map
         var colors = [
           "#a63603",
           "#e6550d",
@@ -179,11 +234,12 @@ function drawWorldMap(year) {
   );
 }
 
-function pieChart() {
+//D3 function to draw the donut chart
+function donutChart() {
   var w = 500;
   var h = 500;
 
-  //To be determined
+  //Reading of data2
   d3.csv(
     "data2.csv",
     function (d) {
@@ -195,11 +251,15 @@ function pieChart() {
     },
     function (error, data) {
       if (error) throw error;
+      //Sort the data by group and sum up the total of the group
+      //To be used in the first donut chart
       const dataByGroup = d3.group(data, (d) => d.group);
       const dataset = Array.from(dataByGroup, ([group, value]) => {
         return { group, value: d3.sum(value, (d) => d.value) };
       });
 
+      //Sort the data by group and value
+      //To be used by the second donut chart
       const sortedData = data.slice().sort(function (a, b) {
         // Sort by group
         if (a.group < b.group) {
@@ -221,12 +281,12 @@ function pieChart() {
         return 0;
       });
 
-      //Inner and Outer Radius for Drawing the Pir Chart
-      //Can Change Inner Radius to Produce a Donut Chart
+      //Inner and Outer Radius for Drawing the First Donut Chart
       var outerRadius = w / 2;
       var innerRadius = h / 5;
-
       var arc = d3.arc().outerRadius(outerRadius).innerRadius(innerRadius);
+
+      //Inner and Outer Radius for Drawing the Second Donut Chart
       const hoverArc = d3
         .arc()
         .innerRadius(innerRadius + 50)
@@ -242,7 +302,6 @@ function pieChart() {
           return d.value;
         })
         .sort(function (a, b) {
-          //console.log(a);
           return d3.ascending(a.group, b.group);
         });
 
@@ -252,6 +311,7 @@ function pieChart() {
         .attr("width", "100%")
         .attr("height", 950);
 
+      //Arcs for the first donut chart
       var arcs = svg
         .selectAll("g.arc")
         .data(pie(dataset))
@@ -263,6 +323,7 @@ function pieChart() {
           "translate(" + (outerRadius + 425) + "," + (outerRadius + 210) + ")"
         );
 
+      //Arcs for the second donut chart
       var hoverArcs = svg
         .selectAll(".hover-segment")
         .data(pie(sortedData))
@@ -277,7 +338,7 @@ function pieChart() {
       //Color from d3 library
       var color = d3.scaleOrdinal(d3.schemeCategory10);
 
-      //Drawing of Pie Chart
+      //Drawing of the first donut chart
       arcs
         .append("path")
         .attr("fill", function (d, i) {
@@ -300,7 +361,7 @@ function pieChart() {
                 .innerRadius(innerRadius + 15)
                 .outerRadius(outerRadius + 15)
             );
-
+          //Display the second donut chart segments if the group matches
           currentGroup = d.data.group;
           d3.selectAll(".hover-segment path")
             .filter(function (hover) {
@@ -309,7 +370,6 @@ function pieChart() {
             .transition()
             .duration(200)
             .attr("opacity", "0.8");
-
           d3.selectAll(".hover-segment text")
             .filter(function (hover) {
               return hover.data.group === currentGroup;
@@ -324,7 +384,8 @@ function pieChart() {
           d3.selectAll(".hover-segment text").attr("opacity", "0");
         });
 
-      //Text Label
+      //Text Label for the First Donut Chart
+      //Return percentage instead of Value
       arcs
         .append("text")
         .text(function (d) {
@@ -332,7 +393,6 @@ function pieChart() {
             (100 * d.data.value) /
             d3.sum(dataset, (d) => d.value)
           ).toFixed(1);
-          //return d.data.group + ": " + percent + "%";
           return percent + "%";
         })
         .attr("transform", function (d) {
@@ -386,6 +446,7 @@ function pieChart() {
           var formattedValue = parseInt(d.data.value).toLocaleString();
           return d.data.detailedGroup + ": " + formattedValue;
         })
+        //Calculations are needed to push the text label outwards from the centre
         .attr("transform", function (d, i) {
           var centroid = hoverArc.centroid(d);
           var radius = outerRadius + 1000;
@@ -394,16 +455,16 @@ function pieChart() {
           var offsetY = Math.sin(angle) * radius * 0.15;
           var newX = centroid[0] + offsetX - 100;
           var newY = centroid[1] + offsetY;
-          //console.log(centroid);
           return "translate(" + newX + "," + newY + ")";
         })
         .attr("opacity", "0")
         .attr("font-weight", "bold")
         .attr("font-size", "15px");
 
+      //Bring the first donut chart to front
       arcs.raise();
 
-      //Legend
+      //Legends
       var colors = ["#f28305", "#324c8f", "#328f38"];
       var data = [
         { label: "Temporary Visa" },
@@ -443,53 +504,16 @@ function pieChart() {
         .text(function (d) {
           return d;
         });
-
-      // var colors2 = ["#000", "#000", "#328f38"];
-      // var data2 = [
-      //   { label: "Temawefasy Visa" },
-      //   { label: "Permanent Visa" },
-      //   { label: "Others" },
-      // ];
-      // var legend2 = svg
-      //   .append("g")
-      //   .attr("class", "legend")
-      //   .attr("transform", "translate(" + (w + 650) + ", " + (h - 20) + ")");
-      // var legendItems2 = legend2
-      //   .selectAll(".legend-item")
-      //   .data(
-      //     data2.map(function (d) {
-      //       return d.label;
-      //     })
-      //   )
-      //   .enter()
-      //   .append("g")
-      //   .attr("class", "legend-item")
-      //   .attr("transform", function (d, i) {
-      //     return "translate(0, " + i * 20 + ")";
-      //   });
-      // legendItems2
-      //   .append("rect")
-      //   .attr("x", 0)
-      //   .attr("y", 0)
-      //   .attr("width", 10)
-      //   .attr("height", 10)
-      //   .style("fill", function (d, i) {
-      //     return colors2[i];
-      //   });
-      // legendItems2
-      //   .append("text")
-      //   .attr("x", 20)
-      //   .attr("y", 10)
-      //   .text(function (d) {
-      //     return d;
-      //   });
     }
   );
 }
 
+//D3 function to draw the line chart
 function lineChart() {
   var w = 1000;
   var h = 600;
+
+  //Reading of data3.csv
   d3.csv(
     "data3.csv",
     function (d) {
@@ -512,6 +536,7 @@ function lineChart() {
   );
 
   function drawLineChart(data) {
+    //X Axis Scaling
     var xScale = d3
       .scaleTime()
       .domain([
@@ -523,6 +548,8 @@ function lineChart() {
         }),
       ])
       .range([50, w - 60]);
+
+    //Y Axis Scaling
     var yScale = d3
       .scaleLinear()
       .domain([
@@ -532,6 +559,10 @@ function lineChart() {
         }),
       ])
       .range([h, 120]);
+
+    //There are 2 lines in total
+    //totalLine and studLine
+    //Most of the naming convention will be using totalXXX or studXXX
     var totalLine = d3
       .line()
       .x(function (d) {
@@ -556,6 +587,7 @@ function lineChart() {
       .append("g")
       .attr("transform", "translate(" + 15 + ", 0)");
 
+    //Drawing of totalLine
     svg
       .append("path")
       .datum(data)
@@ -564,6 +596,7 @@ function lineChart() {
       .style("stroke", "#b06337")
       .style("stroke-width", "4px")
       .attr("fill", "none")
+      //Onclick function to make the line thicker and display all the data points
       .on("click", function () {
         var clickedLine = d3.select(this);
         var isLineClicked = clickedLine.style("stroke-width") === "6";
@@ -581,6 +614,7 @@ function lineChart() {
           }
         });
       })
+      //Hover Effect to display a all the circular dots, not the data point on hover
       .on("mouseover", function () {
         d3.select(this).style("cursor", "pointer");
         svg.selectAll(".total-circle").style("opacity", "1");
@@ -594,6 +628,7 @@ function lineChart() {
         }
       });
 
+    //Drawing of studLine
     svg
       .append("path")
       .datum(data)
@@ -602,6 +637,7 @@ function lineChart() {
       .style("stroke", "#ed6da7")
       .attr("fill", "none")
       .style("stroke-width", "4px")
+      //Onclick function to make the line thicker and display all the data points
       .on("click", function () {
         var clickedLine = d3.select(this);
         var isLineClicked = clickedLine.style("stroke-width") === "6";
@@ -619,6 +655,7 @@ function lineChart() {
           }
         });
       })
+      //Hover Effect to display a all the circular dots, not the data point on hover
       .on("mouseover", function () {
         d3.select(this).style("cursor", "pointer");
         svg.selectAll(".stud-circle").style("opacity", "1");
@@ -632,7 +669,7 @@ function lineChart() {
         }
       });
 
-    //Dotted circle on line
+    //Dotted circles on totalLine
     svg
       .selectAll(".total-circle")
       .data(data)
@@ -648,6 +685,8 @@ function lineChart() {
       .attr("r", 4)
       .style("opacity", "0")
       .attr("fill", "#b06337")
+      //On hover effect to display the value of the single data point
+      //Only when the line is not clicked (not in focused mode)
       .on("mouseover", function (d) {
         var clickedLine = d3.selectAll(".line-total-line");
         var isLineClicked = clickedLine.style("stroke-width") === "6";
@@ -666,6 +705,8 @@ function lineChart() {
           svg.selectAll(".total-circle").style("opacity", "0");
         }
       });
+
+    //Dotted circles on studLine
     svg
       .selectAll(".stud-circle")
       .data(data)
@@ -681,6 +722,8 @@ function lineChart() {
       .attr("r", 4)
       .style("opacity", "0")
       .attr("fill", "#ed6da7")
+      //On hover effect to display the value of the single data point
+      //Only when the line is not clicked (not in focused mode)
       .on("mouseover", function (d) {
         var clickedLine = d3.selectAll(".line-stud-line");
         var isLineClicked = clickedLine.style("stroke-width") === "6";
@@ -700,7 +743,7 @@ function lineChart() {
         }
       });
 
-    //X and y Axis
+    //Drawing of X and Y Axis
     var xAxis = d3.axisBottom().ticks(4).scale(xScale);
     svg
       .append("g")
@@ -717,7 +760,7 @@ function lineChart() {
       .selectAll("text")
       .style("font-size", "15px");
 
-    //Data Label
+    //Data Label for all the points on the totalLine
     svg
       .selectAll(".total-label")
       .data(data)
@@ -736,6 +779,7 @@ function lineChart() {
       })
       .attr("opacity", "0");
 
+    //Data Label for all the points on the studLine
     svg
       .selectAll(".stud-label")
       .data(data)
@@ -754,7 +798,7 @@ function lineChart() {
       })
       .attr("opacity", "0");
 
-    //Legend
+    //Legends
     var colors = ["#b06337", "#ed6da7"];
     var data = [
       { label: "Number of Immigrants into Australia" },
@@ -794,52 +838,6 @@ function lineChart() {
         return d;
       });
   }
-}
-
-function main() {
-  lineChart();
-  drawWorldMap("2012-13");
-  pieChart();
-  var slider = d3.select("#slider");
-  // Get value based on slider
-  slider.on("input", function () {
-    //CSV columns
-    var years = [
-      "2012-13",
-      "2013-14",
-      "2014-15",
-      "2015-16",
-      "2016-17",
-      "2017-18",
-      "2018-19",
-      "2019-20",
-      "2020-21",
-      "2021-22(e)",
-    ];
-    var selectedYear = years[this.value - 1];
-    console.log(selectedYear);
-    drawWorldMap(selectedYear);
-    d3.select("#chart1YearText").text("Year: " + selectedYear);
-  });
-
-  //Scroll Event
-  var chartContainers = document.getElementsByClassName("chartContainer");
-
-  window.addEventListener("scroll", function () {
-    var scrollPosition = window.scrollY;
-
-    for (var i = 0; i < chartContainers.length; i++) {
-      var chartContainer = chartContainers[i];
-      var containerPosition = chartContainer.offsetTop;
-      var activationPoint = containerPosition - 200;
-
-      if (scrollPosition >= activationPoint) {
-        chartContainer.classList.add("active");
-      } else {
-        chartContainer.classList.remove("active");
-      }
-    }
-  });
 }
 
 window.onload = main;
